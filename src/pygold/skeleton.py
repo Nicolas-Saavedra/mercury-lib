@@ -9,13 +9,6 @@ __license__ = "MIT"
 _logger = logging.getLogger(__name__)
 
 
-# ---- Python API ----
-# The functions defined in this section can be imported by users in their
-# Python scripts/interactive interpreter, e.g. via
-# `from pygold.skeleton import fib`,
-# when using this Python module as a library.
-
-
 def fib(n):
     """Fibonacci example function
 
