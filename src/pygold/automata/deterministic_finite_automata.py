@@ -3,6 +3,7 @@ from collections.abc import Iterable
 from typing import Hashable, cast
 from automata.fa.dfa import DFA
 
+from pygold.exceptions import MissingStateException
 from pygold.types.delta_function import DeltaFunction
 
 type State = tuple[Hashable]
@@ -92,23 +93,29 @@ class DeterministicFiniteAutomata:
         self._states = frozenset(
             {
                 (
-                    repr(cast(State, state))
+                    self._to_internal_state(
+                        state  # pyright: ignore[reportUnknownArgumentType]
+                    )
                     if isinstance(state, tuple)
-                    else repr((state,))
+                    else self._to_internal_state((state,))
                 )
                 for state in states
             }
         )
         self._input_symbols = frozenset(input_symbols)
         self._initial_state = (
-            repr(cast(State, initial_state))
+            self._to_internal_state(
+                initial_state  # pyright: ignore[reportUnknownArgumentType]
+            )
             if isinstance(initial_state, tuple)
-            else repr((initial_state,))
+            else self._to_internal_state((initial_state,))
         )
         self._final_states = frozenset(
             {
                 (
-                    repr(cast(State, state))
+                    self._to_internal_state(
+                        state  # pyright: ignore[reportUnknownArgumentType]
+                    )
                     if isinstance(state, tuple)
                     else repr((state,))
                 )
@@ -129,16 +136,23 @@ class DeterministicFiniteAutomata:
     def _generate_mappings(self) -> _InternalMappingStates:
         mappings: _InternalMappingStates = {}
         for state in self.states:
+            mappings[self._to_internal_state(state)] = {}
             for symbol in self._input_symbols:
-                response = self._transition_function(args=state, next_symbol=symbol)
-                # TODO: Not finished yet
+                next_state = cast(
+                    State, self._transition_function(args=state, next_symbol=symbol)
+                )
+                if next_state not in self.states:
+                    raise MissingStateException(state, symbol, next_state)
+                mappings[self._to_internal_state(state)][symbol] = (
+                    self._to_internal_state(next_state)
+                )
         return mappings
 
     @property
     def states(self) -> frozenset[State]:
         """Frozenset of the states for this automata."""
         return frozenset(
-            {ast.literal_eval(internal_state) for internal_state in self._states}
+            {self._to_state(internal_state) for internal_state in self._states}
         )
 
     @property
@@ -149,11 +163,17 @@ class DeterministicFiniteAutomata:
     @property
     def initial_state(self) -> State:
         """String representation of the initial state."""
-        return cast(State, ast.literal_eval(self._initial_state))
+        return self._to_state(self._initial_state)
 
     @property
     def final_states(self) -> frozenset[State]:
         """Frozenset of string representations of accepting states."""
         return frozenset(
-            {ast.literal_eval(internal_state) for internal_state in self._final_states}
+            {self._to_state(internal_state) for internal_state in self._final_states}
         )
+
+    def _to_internal_state(self, state: State) -> _InternalState:
+        return repr(state)
+
+    def _to_state(self, internal_state: _InternalState) -> State:
+        return cast(State, ast.literal_eval(internal_state))

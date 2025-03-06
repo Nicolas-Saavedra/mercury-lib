@@ -1,3 +1,4 @@
+from collections.abc import Hashable
 import inspect
 from types import NoneType
 from typing import Any, Callable, cast
@@ -9,7 +10,7 @@ NEXT_SYMBOL_KEYWORD_NAME = "next"
 
 class DeltaFunction:
 
-    _registry: dict[tuple[type, ...], Callable[..., tuple[str, ...]]]
+    _registry: dict[tuple[type, ...], Callable[..., tuple[Hashable, ...]]]
 
     def __init__(self) -> None:
         self._registry = {}
@@ -23,9 +24,7 @@ class DeltaFunction:
         return resolver(*args, next_symbol)
 
     def definition(self):
-        def decorator(
-            func: Callable[..., tuple[Any, ...]]  # pyright: ignore[reportExplicitAny]
-        ):
+        def decorator(func: Callable[..., tuple[Hashable, ...]]):
             signature = inspect.signature(func)
             parameters = list(signature.parameters.values())
 

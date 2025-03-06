@@ -1,3 +1,4 @@
+from collections.abc import Hashable
 from inspect import Parameter
 from typing import Any, Callable
 
@@ -20,4 +21,14 @@ class MissingNextParameterException(Exception):
     ) -> None:
         super().__init__(
             f"Missing parameter `next` in {func.__name__} for DeltaFunction()"
+        )
+
+
+class MissingStateException(Exception):
+    def __init__(
+        self, state: tuple[Hashable], symbol: str, next_state: tuple[Hashable]
+    ) -> None:
+        super().__init__(
+            f"Could not transition from state {state}, symbol {symbol}, to {next_state}, \
+            because {next_state} is not a valid state in the definition of the automata"
         )
