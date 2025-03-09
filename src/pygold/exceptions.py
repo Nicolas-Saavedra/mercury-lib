@@ -1,6 +1,6 @@
 from collections.abc import Hashable
 from inspect import Parameter
-from typing import Any, Callable
+from typing import Callable
 
 
 class MissingTypeHintException(Exception):
@@ -17,7 +17,7 @@ class MissingTypeHintException(Exception):
 class MissingNextParameterException(Exception):
     def __init__(
         self,
-        func: Callable[..., tuple[Any, ...]],  # pyright: ignore[reportExplicitAny]
+        func: Callable[..., tuple[Hashable, ...] | Hashable],
     ) -> None:
         super().__init__(
             f"Missing parameter `next` in {func.__name__} for DeltaFunction()"

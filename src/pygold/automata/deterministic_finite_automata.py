@@ -1,36 +1,11 @@
 import ast
-from collections.abc import Iterable
-from typing import Hashable, cast
+from collections.abc import Hashable, Iterable
+from typing import cast
 from automata.fa.dfa import DFA
 
 from pygold.exceptions import MissingStateException
 from pygold.types.delta_function import DeltaFunction
-
-type State = tuple[Hashable]
-"""
-States are the core foundation of DFAs inside of pyGold. These states are simple tuples
-of hashable values. Since `automata-python` can only handle states in string format,
-states from `pyGold` need to be translated to strings using the python `repr` function.
-
-Do not confuse them with InputState, which are states solely used to provide flexibility
-in the constructor such that it's easier to use, but will not be returned by the automaton
-at any point
-"""
-
-type InputState = Hashable
-"""
-InputStates are simple abstractions that make it easier for users to provide states
-in multiple formats to Deterministic automata. These are simply any value that is
-hashable. If the input state is a tuple, it will be treated as such for state management,
-otherwise, it will be converted internally into a one-valued tuple as to make transition
-function management easier
-"""
-
-type InputSymbol = str
-"""
-Wrapper over string to represent a single input symbol. It should always be a one-character
-string value, however, this verification may not be enforced at runtime for now
-"""
+from pygold.types.state import State, InputSymbol, InputState
 
 type _InternalState = str
 """
@@ -92,33 +67,17 @@ class DeterministicFiniteAutomata:
         """
         self._states = frozenset(
             {
-                (
-                    self._to_internal_state(
-                        state  # pyright: ignore[reportUnknownArgumentType]
-                    )
-                    if isinstance(state, tuple)
-                    else self._to_internal_state((state,))
-                )
+                self._to_internal_state(self._collapse_into_state(state))
                 for state in states
             }
         )
         self._input_symbols = frozenset(input_symbols)
-        self._initial_state = (
-            self._to_internal_state(
-                initial_state  # pyright: ignore[reportUnknownArgumentType]
-            )
-            if isinstance(initial_state, tuple)
-            else self._to_internal_state((initial_state,))
+        self._initial_state = self._to_internal_state(
+            self._collapse_into_state(initial_state)
         )
         self._final_states = frozenset(
             {
-                (
-                    self._to_internal_state(
-                        state  # pyright: ignore[reportUnknownArgumentType]
-                    )
-                    if isinstance(state, tuple)
-                    else repr((state,))
-                )
+                self._to_internal_state(self._collapse_into_state(state))
                 for state in final_states
             }
         )
@@ -138,8 +97,8 @@ class DeterministicFiniteAutomata:
         for state in self.states:
             mappings[self._to_internal_state(state)] = {}
             for symbol in self._input_symbols:
-                next_state = cast(
-                    State, self._transition_function(args=state, next_symbol=symbol)
+                next_state = self._collapse_into_state(
+                    self._transition_function(args=state, next_symbol=symbol)
                 )
                 if next_state not in self.states:
                     raise MissingStateException(state, symbol, next_state)
@@ -177,3 +136,14 @@ class DeterministicFiniteAutomata:
 
     def _to_state(self, internal_state: _InternalState) -> State:
         return cast(State, ast.literal_eval(internal_state))
+
+    def _collapse_into_state(self, input_state: InputState) -> State:
+        return (
+            input_state
+            if isinstance(input_state, tuple)
+            and all(
+                isinstance(element, Hashable)
+                for element in input_state  # pyright: ignore[reportUnknownVariableType]
+            )
+            else (input_state,)
+        )

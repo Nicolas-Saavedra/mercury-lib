@@ -1,16 +1,16 @@
-from collections.abc import Hashable
 import inspect
 from types import NoneType
 from typing import Any, Callable, cast
 
 from pygold.exceptions import MissingNextParameterException, MissingTypeHintException
+from pygold.types.state import InputState
 
 NEXT_SYMBOL_KEYWORD_NAME = "next"
 
 
 class DeltaFunction:
 
-    _registry: dict[tuple[type, ...], Callable[..., tuple[Hashable, ...]]]
+    _registry: dict[tuple[type, ...], Callable[..., InputState]]
 
     def __init__(self) -> None:
         self._registry = {}
@@ -21,10 +21,10 @@ class DeltaFunction:
         next_symbol: str,
     ):
         resolver = self._registry[args]
-        return resolver(*args, next_symbol)
+        return resolver(*args, **{NEXT_SYMBOL_KEYWORD_NAME: next_symbol})
 
     def definition(self):
-        def decorator(func: Callable[..., tuple[Hashable, ...]]):
+        def decorator(func: Callable[..., InputState]):
             signature = inspect.signature(func)
             parameters = list(signature.parameters.values())
 

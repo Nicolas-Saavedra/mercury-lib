@@ -1,17 +1,25 @@
 import pytest
 
-from pygold.skeleton import fib
+from pygold.automata.deterministic_finite_automata import DeterministicFiniteAutomata
+from pygold.types.delta_function import DeltaFunction
 
 __author__ = "Nicolas-Saavedra"
 __copyright__ = "Nicolas-Saavedra"
 __license__ = "MIT"
 
 
-def test_fib():
-    """API Tests"""
-    assert fib(1) == 1
-    assert fib(2) == 1
-    assert fib(7) == 13
+def test_automata_creation():
+    states = [0, 1]
+    input_symbols = "01"
+    initial_state = 0
+    final_states = [0]
 
-    with pytest.raises(AssertionError):
-        _ = fib(-10)
+    delta = DeltaFunction()
+
+    @delta.definition()
+    def _(_: int, next: str):
+        return int(next)
+
+    __ = DeterministicFiniteAutomata(
+        states, input_symbols, initial_state, final_states, delta
+    )
