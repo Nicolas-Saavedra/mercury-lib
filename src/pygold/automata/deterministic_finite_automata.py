@@ -131,6 +131,20 @@ class DeterministicFiniteAutomata:
             {self._to_state(internal_state) for internal_state in self._final_states}
         )
 
+    def accepts_input(self, input_str: str) -> bool:
+        "Returns true if this automaton accepts the input string"
+        return self._automata.accepts_input(input_str)
+
+    def show_diagram(self, path: str) -> None:
+        """
+        Shows a diagram for the generated automaton using the UI libraries.
+        Please make sure that you have installed either the package with all
+        the dependencies or at least the graphical ones (pyGold[all] or pyGold[graphical])
+        """
+        _ = self._automata.show_diagram().draw(  # pyright: ignore[reportUnknownMemberType]
+            path
+        )
+
     def _to_internal_state(self, state: State) -> _InternalState:
         return repr(state)
 
