@@ -4,7 +4,7 @@ from typing import cast
 from automata.fa.dfa import DFA
 
 from pygold.exceptions import MissingStateException
-from pygold.types.delta_function import DeltaFunction
+from pygold.decorators.delta_function import DeltaFunction
 from pygold.types.state import State, InputSymbol, InputState
 
 type _InternalState = str

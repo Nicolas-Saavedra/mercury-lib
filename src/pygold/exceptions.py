@@ -2,6 +2,8 @@ from collections.abc import Hashable
 from inspect import Parameter
 from typing import Callable
 
+from pygold.types.delta_function import Registry
+
 
 class MissingTypeHintException(Exception):
 
@@ -29,6 +31,14 @@ class MissingStateException(Exception):
         self, state: tuple[Hashable], symbol: str, next_state: tuple[Hashable]
     ) -> None:
         super().__init__(
-            f"Could not transition from state {state}, symbol {symbol}, to {next_state}, \
-            because {next_state} is not a valid state in the definition of the automata"
+            f"Could not transition from state {state}, symbol {symbol}, to {next_state}, because {next_state} is not a valid state in the definition of the automata"
+        )
+
+
+class MissingDefinitionException(Exception):
+    def __init__(
+        self, registry: Registry, state: tuple[Hashable], next_symbol: str
+    ) -> None:
+        super().__init__(
+            f"Could not call the transition from state {state} with symbol {next_symbol}, could not find definition in registry, types defined: {list(registry.keys())}"
         )

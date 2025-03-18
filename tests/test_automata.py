@@ -1,7 +1,5 @@
-import pytest
-
 from pygold.automata.deterministic_finite_automata import DeterministicFiniteAutomata
-from pygold.types.delta_function import DeltaFunction
+from pygold.decorators.delta_function import DeltaFunction
 
 __author__ = "Nicolas-Saavedra"
 __copyright__ = "Nicolas-Saavedra"
