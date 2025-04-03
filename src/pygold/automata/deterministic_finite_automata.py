@@ -1,7 +1,8 @@
 import ast
 from collections.abc import Hashable, Iterable
-from typing import cast
+from typing import Generator, cast
 from automata.fa.dfa import DFA
+from frozendict import frozendict
 
 from pygold.exceptions import MissingStateException
 from pygold.decorators.delta_function import DeltaFunction
@@ -44,6 +45,7 @@ class DeterministicFiniteAutomata:
     _input_symbols: frozenset[InputSymbol]
     _initial_state: _InternalState
     _final_states: frozenset[_InternalState]
+    _transitions: _InternalMappingStates
     _transition_function: DeltaFunction
 
     def __init__(
@@ -82,11 +84,12 @@ class DeterministicFiniteAutomata:
             }
         )
         self._transition_function = transition_function
+        self._transitions = self._generate_mappings()
 
         self._automata = DFA(
             states=self._states,
             input_symbols=self._input_symbols,
-            transitions=self._generate_mappings(),
+            transitions=self._transitions,
             initial_state=self._initial_state,
             final_states=self._final_states,
             allow_partial=True,
@@ -115,6 +118,17 @@ class DeterministicFiniteAutomata:
         )
 
     @property
+    def transitions(self) -> frozendict[tuple[State, InputSymbol], State]:
+        """Frozenset of the states for this automata."""
+        mapping: dict[tuple[State, InputSymbol], State] = {}
+        for internal_state, internal_symbol_mapping in self._transitions.items():
+            for symbol, internal_next_state in internal_symbol_mapping.items():
+                mapping[(self._to_state(internal_state), symbol)] = self._to_state(
+                    internal_next_state
+                )
+        return frozendict(mapping)
+
+    @property
     def input_symbols(self) -> frozenset[InputSymbol]:
         """Frozenset containing all allowed input symbols as strings."""
         return self._input_symbols
@@ -134,6 +148,16 @@ class DeterministicFiniteAutomata:
     def accepts_input(self, input_str: str) -> bool:
         "Returns true if this automaton accepts the input string"
         return self._automata.accepts_input(input_str)
+
+    def read_input_stepwise(self, input_str: str) -> Generator[State, None, None]:
+        "Returns a generator that yields each step while reading from the input string"
+        internal_state_generator = self._automata.read_input_stepwise(input_str)
+
+        def generator():
+            next_internal_state = cast(_InternalState, next(internal_state_generator))
+            yield self._to_state(next_internal_state)
+
+        return generator()
 
     def show_diagram(self, path: str) -> None:
         """
