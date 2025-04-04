@@ -1,16 +1,14 @@
 import { useEffect, useRef } from "react";
 import * as d3 from "d3";
-import { SimulationLinkDatum } from "d3";
+import { Link } from "../types/link";
+import { Node } from "../types/node";
 
-type Node = {
-        id: string;
-} & d3.SimulationNodeDatum;
-
-type Link = SimulationLinkDatum<Node> & {
-        label: string
+type ForceGraphProps = {
+        nodes: Node[],
+        links: Link[]
 }
 
-export default function ForceGraph() {
+export default function ForceGraph({ nodes, links }: ForceGraphProps) {
         const svgRef = useRef<SVGSVGElement>(null);
 
         useEffect(() => {
@@ -19,23 +17,6 @@ export default function ForceGraph() {
                 const width = 1920;
                 const height = 1080;
 
-                const nodes: Node[] = [
-                        { id: "A" },
-                        { id: "B" },
-                        { id: "C" },
-                        { id: "D" },
-                        { id: "E" },
-                        { id: "F" },
-                ].map((d) => ({ ...d, x: Math.random() * width, y: Math.random() * height }));
-
-                const links: Link[] = [
-                        { source: "A", target: "B", label: "a" },
-                        { source: "B", target: "A", label: "a" },
-                        { source: "C", target: "A", label: "a" },
-                        { source: "D", target: "E", label: "a" },
-                        { source: "E", target: "F", label: "a" },
-                        { source: "F", target: "B", label: "a" },
-                ];
 
                 const svg = d3.select(svgRef.current);
                 svg.selectAll("*").remove(); // Clear previous render
@@ -43,8 +24,8 @@ export default function ForceGraph() {
 
                 const simulation = d3
                         .forceSimulation<Node>(nodes)
-                        .force("link", d3.forceLink<Node, Link>(links).id((d) => d.id).distance(200))
-                        .force("charge", d3.forceManyBody().strength(-300))
+                        .force("link", d3.forceLink<Node, Link>(links).id((d) => d.id).distance(400))
+                        .force("charge", d3.forceManyBody().strength(-1000))
                         .force("center", d3.forceCenter(width / 2, height / 2));
 
                 svg.append("defs").selectAll("marker")

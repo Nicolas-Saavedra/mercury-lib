@@ -6,14 +6,14 @@ from pygold.types.state import State
 
 
 class DFANode(BaseModel):
+    id: str
     label: str
-    identifier: str
 
 
 class DFALink(BaseModel):
     label: str
-    from_node: str
-    to_node: str
+    source: str
+    target: str
 
 
 class DFASchema(BaseModel):
@@ -41,21 +41,21 @@ def to_schema(dfa: DeterministicFiniteAutomata) -> DFASchema:
         links.append(
             DFALink(
                 label=initial_conditions[1],
-                from_node=str(initial_conditions[0]),
-                to_node=str(next_state),
+                source=str(initial_conditions[0]),
+                target=str(next_state),
             )
         )
     return DFASchema(
         nodes=nodes,
         links=links,
         initial_node=DFANode(
+            id=str(dfa.initial_state),
             label="".join([str(cmp) for cmp in dfa.initial_state]),
-            identifier=str(dfa.initial_state),
         ),
         final_nodes=[
             DFANode(
+                id=str(state),
                 label="".join([str(cmp) for cmp in state]),
-                identifier=str(state),
             )
             for state in dfa.final_states
         ],
@@ -63,4 +63,4 @@ def to_schema(dfa: DeterministicFiniteAutomata) -> DFASchema:
 
 
 def to_node(state: State) -> DFANode:
-    return DFANode(label="".join([str(cmp) for cmp in state]), identifier=str(state))
+    return DFANode(label="".join([str(cmp) for cmp in state]), id=str(state))

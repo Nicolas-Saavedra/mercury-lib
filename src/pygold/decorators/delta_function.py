@@ -15,6 +15,14 @@ NEXT_SYMBOL_KEYWORD_NAME = "next"
 
 
 class DeltaFunction:
+    """
+    Creates a new delta function instance for an automata to use
+
+    A delta function is a function that an automata can use in order
+    to create transitions between states based on the next character
+    read by the machine. This function can have one or more definitions
+    such that it can handle different lenghts of tuples in expected states
+    """
 
     _registry: Registry
 
@@ -35,6 +43,43 @@ class DeltaFunction:
         return resolver(*args, **{NEXT_SYMBOL_KEYWORD_NAME: next_symbol})
 
     def definition(self):
+        """
+        Declares the following function as part of a delta function,
+        and adds it to it's definition table
+
+        For a DFA to be able to work with multiple functions in python, we use
+        the `DeltaFunction()` helper, which allows us to give a function more than
+        one definition in order to handle states that can be tuples of 1, 2 or
+        more values, and that need to be handled differently depending on how many
+        values the tuple has
+
+        To use the function, call it as a decorator on top of the
+        definition you wish to use
+
+        Example:
+
+        ```py
+        @delta.definition()
+        def _(w: str, y: int, next: str):
+            if w == "a" and next == "a":
+                return (w, (y + 1) % 3)
+            elif w == "a" and next == "b":
+                return (w, y)
+            elif w == "a" and next == "x":
+                return ("b", (3 - y) % 3)
+            elif w == "b" and next == "b":
+                return (w, (y + 1) % 3)
+            elif w == "b" and next == "a":
+                return (w, y)
+            else:
+                return 0
+        ```
+
+        Do know that for convenience, it is recommended to name the functions as `_`
+        in order for python to understand that the function will not be called by name,
+        but by an external tool, such as pyGold
+        """
+
         def decorator(func: Callable[..., InputState]):
             signature = inspect.signature(func)
             parameters = list(signature.parameters.values())

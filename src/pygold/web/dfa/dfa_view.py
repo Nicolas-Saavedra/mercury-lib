@@ -1,5 +1,4 @@
-from typing import Generator
-
+from collections.abc import Generator
 from starlette.status import HTTP_201_CREATED, HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
 from pygold.automata.deterministic_finite_automata import (
     DeterministicFiniteAutomata as DFA,
@@ -10,7 +9,6 @@ import uvicorn
 
 from pygold.types.state import State
 from pygold.web.dfa.dfa_schema import (
-    DFANode,
     DFASchema,
     DFAStepResult,
     to_node,
