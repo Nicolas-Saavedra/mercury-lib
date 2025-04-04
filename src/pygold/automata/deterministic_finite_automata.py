@@ -151,11 +151,14 @@ class DeterministicFiniteAutomata:
 
     def read_input_stepwise(self, input_str: str) -> Generator[State, None, None]:
         "Returns a generator that yields each step while reading from the input string"
-        internal_state_generator = self._automata.read_input_stepwise(input_str)
+        internal_state_generator = cast(
+            Generator[_InternalState, None, None],
+            self._automata.read_input_stepwise(input_str),
+        )
 
         def generator():
-            next_internal_state = cast(_InternalState, next(internal_state_generator))
-            yield self._to_state(next_internal_state)
+            for next_internal_state in internal_state_generator:
+                yield self._to_state(next_internal_state)
 
         return generator()
 

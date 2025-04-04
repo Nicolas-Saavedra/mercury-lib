@@ -1,3 +1,4 @@
+from typing import Literal
 from pydantic import BaseModel
 
 from pygold.automata.deterministic_finite_automata import DeterministicFiniteAutomata
@@ -20,6 +21,15 @@ class DFASchema(BaseModel):
     links: list[DFALink]
     initial_node: DFANode
     final_nodes: list[DFANode]
+
+
+class DFAEndResult(BaseModel):
+    accepted: bool
+
+
+class DFAStepResult(BaseModel):
+    status: Literal["ongoing", "finished"]
+    result: DFANode | bool
 
 
 def to_schema(dfa: DeterministicFiniteAutomata) -> DFASchema:
