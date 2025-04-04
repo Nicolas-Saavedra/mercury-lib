@@ -6,9 +6,11 @@ import { Node } from "../types/node";
 type ForceGraphProps = {
         nodes: Node[],
         links: Link[]
+        initialNode: Node,
+        finalNodes: Node[],
 }
 
-export default function ForceGraph({ nodes, links }: ForceGraphProps) {
+export default function ForceGraph({ nodes, links, initialNode, finalNodes }: ForceGraphProps) {
         const svgRef = useRef<SVGSVGElement>(null);
 
         useEffect(() => {
@@ -24,8 +26,8 @@ export default function ForceGraph({ nodes, links }: ForceGraphProps) {
 
                 const simulation = d3
                         .forceSimulation<Node>(nodes)
-                        .force("link", d3.forceLink<Node, Link>(links).id((d) => d.id).distance(400))
-                        .force("charge", d3.forceManyBody().strength(-1000))
+                        .force("link", d3.forceLink<Node, Link>(links).id((d) => d.id).distance(200))
+                        .force("charge", d3.forceManyBody().strength(-500))
                         .force("center", d3.forceCenter(width / 2, height / 2));
 
                 svg.append("defs").selectAll("marker")
@@ -70,7 +72,7 @@ export default function ForceGraph({ nodes, links }: ForceGraphProps) {
                         .selectAll("circle")
                         .data(nodes)
                         .join("circle")
-                        .attr("r", 20)
+                        .attr("r", 24)
                         .attr("fill", "oklch(96.7% 0.003 264.542)")
                         .attr("stroke", "oklch(37.3% 0.034 259.733)")
                         .attr("stroke-width", 1.5)
@@ -92,6 +94,29 @@ export default function ForceGraph({ nodes, links }: ForceGraphProps) {
                                                 d.fy = null;
                                         })
                         );
+
+                node
+                        .filter(d => finalNodes.map(node => node.id).includes(d.id))
+                        .each(function (d) {
+                                svg
+                                        .append<SVGCircleElement>("circle")
+                                        .datum(d)
+                                        .attr("class", "final-inner-circle")
+                                        .attr("r", 20)
+                                        .attr("fill", "none")
+                                        .attr("stroke", "oklch(37.3% 0.034 259.733)")
+                                        .attr("stroke-width", 1.5)
+                        });
+
+                node
+                        .filter(d => initialNode.id == d.id)
+                        .each(function (d) {
+                                svg
+                                        .append<SVGPathElement>("path")
+                                        .datum(d)
+                                        .attr("class", "initial-arrow")
+                                        .attr("fill", "oklch(37.3% 0.034 259.733)")
+                        });
 
                 const labels = svg
                         .append("g")
@@ -171,6 +196,22 @@ export default function ForceGraph({ nodes, links }: ForceGraphProps) {
                         labels
                                 .attr("x", (d) => d.x!)
                                 .attr("y", (d) => d.y!);
+
+                        svg.selectAll<SVGCircleElement, Node>(".final-inner-circle")
+                                .attr("cx", d => d.x ?? 0)
+                                .attr("cy", d => d.y ?? 0);
+
+                        svg.selectAll<SVGCircleElement, Node>(".initial-arrow")
+                                .attr("d", d => {
+                                        const x = d.x ?? 0;
+                                        const y = d.y ?? 0;
+
+                                        // Triangle head pointing left
+                                        const tipX = x - 30;
+                                        const tipY = y;
+
+                                        return `M${tipX - 7.5},${tipY - 6} L${tipX},${tipY} L${tipX - 7.5},${tipY + 6} Z`;
+                                });
 
                 });
         }, []);

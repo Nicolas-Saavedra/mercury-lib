@@ -16,7 +16,7 @@ export default function App() {
 
   return (
     <>
-      {automata && <ForceGraph nodes={automata.nodes} links={automata.links} />}
+      {automata && <ForceGraph nodes={automata.nodes} links={automata.links} initialNode={automata.initial_node} finalNodes={automata.final_nodes} />}
     </>
   );
 }
