@@ -217,6 +217,6 @@ export default function ForceGraph({ nodes, links, initialNode, finalNodes }: Fo
         }, []);
 
         return (
-                <svg ref={svgRef} className="w-full h-full" />
+                <svg ref={svgRef} className="absolute inset-0 z-0 w-full h-full" />
         );
 }
