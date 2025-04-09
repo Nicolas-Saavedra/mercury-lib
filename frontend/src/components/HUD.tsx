@@ -1,12 +1,55 @@
 import { FastForward, Play, StepForward } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type HUDProps = {
   onPlay: (input_string: string) => void;
+  onChangeDelay: (delay: number) => void;
 };
 
-export default function HUD({ onPlay }: HUDProps) {
+export default function HUD({ onPlay, onChangeDelay }: HUDProps) {
   const [inputString, setInputString] = useState<string>("");
+  const [stringDelay, setStringDelay] = useState<string>("1.0");
+  const [delay, setDelay] = useState<number>(1);
+
+  const handleChangeStringDelay = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const input = event.target.value;
+
+    if (/^\d*\.?\d*$/.test(input)) {
+      setStringDelay(input);
+
+      if (!isNaN(Number(input))) {
+        setDelay(Number(input));
+      }
+    }
+  };
+
+  const changeDelay = (delta: number) => {
+    setDelay((oldDelay) => {
+      const newDelay = +Math.max(oldDelay + delta, 0.05).toFixed(2);
+      setStringDelay(
+        Number.isInteger(newDelay) ? `${newDelay}.0` : newDelay.toString(),
+      );
+      return newDelay;
+    });
+  };
+
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (e.key === "Enter") {
+      console.log("Start the ship", inputString);
+      onPlay(inputString);
+    }
+  };
+
+  useEffect(() => {
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [inputString]);
+
+  useEffect(() => {
+    onChangeDelay(delay);
+  }, [delay]);
 
   return (
     <div className="absolute z-10 flex flex-col w-full h-full justify-between pointer-events-none">
@@ -40,7 +83,32 @@ export default function HUD({ onPlay }: HUDProps) {
           </button>
         </div>
       </div>
-      <div className="flex"></div>
+      <div className="flex justify-between">
+        <div className="flex p-4 m-4">
+          <button
+            className="bg-gray-100 pointer-events-auto size-8"
+            onClick={() => changeDelay(0.05)}
+          >
+            +
+          </button>
+          <input
+            type="text"
+            inputMode="decimal"
+            className=" bg-gray-100 w-16 pointer-events-auto ml-4 mr-1 font-mono rounded text-center"
+            value={stringDelay}
+            onChange={handleChangeStringDelay}
+          />
+          <span className="text-center font-mono align-baseline italic mr-2 mt-1">
+            s
+          </span>
+          <button
+            className="bg-gray-100 pointer-events-auto size-8"
+            onClick={() => changeDelay(-0.05)}
+          >
+            -
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

@@ -21,6 +21,9 @@ export default function App() {
     [],
   );
 
+  // Delay per step in seconds
+  const [stepDelay, setStepDelay] = useState<number>(1);
+
   // Current step of the execution
   const [currentStep, setCurrentStep] = useState<number | null>(null);
 
@@ -69,7 +72,7 @@ export default function App() {
   useEffect(() => {
     if (currentStep === null || currentExecution === null) return;
 
-    if (currentStep == currentExecution.nodes.length - 1) {
+    if (currentStep >= currentExecution.nodes.length - 1) {
       const lastNode =
         currentExecution.nodes[currentExecution.nodes.length - 1];
 
@@ -81,11 +84,6 @@ export default function App() {
         setHighlighedErrorNodes([lastNode]);
       }
       setHighlighedNodes([]);
-      return;
-    } else if (currentStep == currentExecution.nodes.length) {
-      setHighlighedNodes([]);
-      setHighlighedSuccessNodes([]);
-      setHighlighedErrorNodes([]);
       return;
     }
 
@@ -99,10 +97,10 @@ export default function App() {
       intervalRef.current = window.setInterval(() => {
         setCurrentStep((currentStep) =>
           currentStep !== null
-            ? Math.min(currentStep + 1, currentExecution.nodes.length)
+            ? Math.min(currentStep + 1, currentExecution.nodes.length - 1)
             : null,
         );
-      }, 1000);
+      }, 1000 * stepDelay);
     }
 
     return () => {
@@ -110,7 +108,7 @@ export default function App() {
         clearInterval(intervalRef.current);
       }
     };
-  }, [executionRunning, currentExecution]);
+  }, [executionRunning, currentExecution, stepDelay]);
 
   return (
     <div className="relative w-screen h-screen">
@@ -125,7 +123,10 @@ export default function App() {
           highlightedErrorNodes={highlightedErrorNodes}
         />
       )}
-      <HUD onPlay={playAutomata} />
+      <HUD
+        onPlay={playAutomata}
+        onChangeDelay={(newDelay) => setStepDelay(newDelay)}
+      />
     </div>
   );
 }
