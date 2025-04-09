@@ -1,0 +1,307 @@
+import { useEffect, useRef } from "react";
+import * as d3 from "d3";
+import { Link } from "../types/link";
+import { Node } from "../types/node";
+
+type ForceGraphProps = {
+  nodes: Node[];
+  links: Link[];
+  initialNode: Node;
+  finalNodes: Node[];
+};
+
+export default function Graph({
+  nodes,
+  links,
+  initialNode,
+  finalNodes,
+}: ForceGraphProps) {
+  const svgRef = useRef<SVGSVGElement>(null);
+
+  function createMarkers(
+    svg: d3.Selection<SVGSVGElement, unknown, null, undefined>,
+  ) {
+    svg
+      .append("defs")
+      .selectAll("marker")
+      .data(["end"])
+      .enter()
+      .append("marker")
+      .attr("id", (d) => d)
+      .attr("viewBox", "0 -5 10 10")
+      .attr("refX", 28)
+      .attr("refY", 0)
+      .attr("markerWidth", 6)
+      .attr("markerHeight", 6)
+      .attr("orient", "auto")
+      .append("path")
+      .attr("fill", "#aaa")
+      .attr("d", "M0,-5L10,0L0,5");
+  }
+
+  function createLinks(
+    svg: d3.Selection<SVGSVGElement, unknown, null, undefined>,
+  ) {
+    return svg
+      .append("g")
+      .attr("stroke", "#aaa")
+      .selectAll("path")
+      .data(links)
+      .join("path")
+      .attr("fill", "none")
+      .attr("stroke-width", 2)
+      .attr("marker-end", "url(#end)");
+  }
+
+  function createLinkLabels(
+    svg: d3.Selection<SVGSVGElement, unknown, null, undefined>,
+  ) {
+    return svg
+      .append("g")
+      .selectAll("text")
+      .data(links)
+      .join("text")
+      .text((d) => d.label)
+      .attr("font-size", "12px")
+      .attr("font-family", "sans-serif")
+      .attr("fill", "#555")
+      .attr("text-anchor", "middle")
+      .attr("dominant-baseline", "central")
+      .attr("pointer-events", "none");
+  }
+
+  function createNodes(
+    svg: d3.Selection<SVGSVGElement, unknown, null, undefined>,
+    simulation: d3.Simulation<Node, undefined>,
+  ) {
+    return svg
+      .append("g")
+      .selectAll("circle")
+      .data(nodes)
+      .join("circle")
+      .attr("r", 24)
+      .attr("fill", "oklch(96.7% 0.003 264.542)")
+      .attr("stroke", "oklch(37.3% 0.034 259.733)")
+      .attr("stroke-width", 1.5)
+      .call(
+        d3
+          .drag<SVGCircleElement, Node>()
+          .on("start", (event, d) => {
+            if (!event.active) simulation.alphaTarget(0.3).restart();
+            d.fx = d.x;
+            d.fy = d.y;
+          })
+          .on("drag", (event, d) => {
+            d.fx = event.x;
+            d.fy = event.y;
+          })
+          .on("end", (event, d) => {
+            if (!event.active) simulation.alphaTarget(0);
+            d.fx = null;
+            d.fy = null;
+          }) as any, // WARNING: Check up on this later
+      );
+  }
+  function createInitialFinalNodeDecorations(
+    svg: d3.Selection<SVGSVGElement, unknown, null, undefined>,
+    svgNodes: d3.Selection<
+      d3.BaseType | SVGCircleElement,
+      Node,
+      SVGGElement,
+      unknown
+    >,
+  ) {
+    svg.selectAll(".final-inner-circle").remove();
+    svg.selectAll(".initial-arrow").remove();
+
+    svgNodes
+      .filter((d) => finalNodes.map((node) => node.id).includes(d.id))
+      .each(function (d) {
+        svg
+          .append<SVGCircleElement>("circle")
+          .datum(d)
+          .attr("class", "final-inner-circle")
+          .attr("r", 20)
+          .attr("fill", "none")
+          .attr("stroke", "oklch(37.3% 0.034 259.733)")
+          .attr("stroke-width", 1.5);
+      });
+    svgNodes
+      .filter((d) => initialNode.id == d.id)
+      .each(function (d) {
+        svg
+          .append<SVGPathElement>("path")
+          .datum(d)
+          .attr("class", "initial-arrow")
+          .attr("fill", "oklch(37.3% 0.034 259.733)");
+      });
+  }
+
+  function createNodeLabels(
+    svg: d3.Selection<SVGSVGElement, unknown, null, undefined>,
+  ) {
+    return svg
+      .append("g")
+      .selectAll("text")
+      .data(nodes)
+      .join("text")
+      .text((d) => d.id)
+      .attr("font-size", "10px")
+      .attr("font-family", "sans-serif")
+      .attr("text-anchor", "middle")
+      .attr("dominant-baseline", "central")
+      .attr("fill", "oklch(0% 0 0)")
+      .attr("pointer-events", "none");
+  }
+
+  // Extract curve calculation logic
+  function calculateCurvedPath(
+    source: Node,
+    target: Node,
+    hasReverse: boolean,
+  ) {
+    const x1 = source.x!,
+      y1 = source.y!;
+    const x2 = target.x!,
+      y2 = target.y!;
+
+    if (!hasReverse) {
+      return `M${x1},${y1} L${x2},${y2}`;
+    }
+
+    const dx = x2 - x1,
+      dy = y2 - y1;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    const strength = 0.3;
+    const offset = strength * distance;
+
+    const perpX = -dy / distance,
+      perpY = dx / distance;
+    const cx = (x1 + x2) / 2 + perpX * offset;
+    const cy = (y1 + y2) / 2 + perpY * offset;
+
+    return `M${x1},${y1} Q${cx},${cy} ${x2},${y2}`;
+  }
+
+  function calculatePointCurvedCoordinates(
+    source: Node,
+    target: Node,
+    hasReverse: boolean,
+  ) {
+    const x1 = source.x!,
+      y1 = source.y!;
+    const x2 = target.x!,
+      y2 = target.y!;
+
+    if (!hasReverse) {
+      return [(x1 + x2) / 2, (y1 + y2) / 2];
+    }
+
+    const dx = x2 - x1,
+      dy = y2 - y1;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    const strength = 0.3;
+    const offset = strength * distance;
+
+    const perpX = -dy / distance,
+      perpY = dx / distance;
+    const cx = (x1 + x2) / 2 + perpX * offset;
+    const cy = (y1 + y2) / 2 + perpY * offset;
+
+    return [cx, cy];
+  }
+
+  useEffect(() => {
+    if (!svgRef.current) return;
+
+    const width = 1920;
+    const height = 1080;
+
+    const svg = d3.select(svgRef.current);
+    svg.selectAll("*").remove(); // Clear previous render
+    svg.attr("viewBox", `0 0 ${width} ${height}`);
+
+    const simulation = d3
+      .forceSimulation<Node>(nodes)
+      .force(
+        "link",
+        d3
+          .forceLink<Node, Link>(links)
+          .id((d) => d.id)
+          .distance(350),
+      )
+      .force("charge", d3.forceManyBody().strength(-500))
+      .force("center", d3.forceCenter(width / 2, height / 2));
+
+    createMarkers(svg);
+
+    const svgLinks = createLinks(svg);
+    const svgNodes = createNodes(svg, simulation);
+
+    const svgLinkLabels = createLinkLabels(svg);
+    const svgNodeLabels = createNodeLabels(svg);
+
+    createInitialFinalNodeDecorations(svg, svgNodes);
+
+    simulation.on("tick", () => {
+      svgNodes.attr("cx", (d) => d.x!).attr("cy", (d) => d.y!);
+
+      svgLinks.attr("d", (d) => {
+        const hasReverse = links.some(
+          (l) => l.source === d.target && l.target === d.source,
+        );
+        return calculateCurvedPath(
+          d.source as Node,
+          d.target as Node,
+          hasReverse,
+        );
+      });
+
+      svgNodeLabels.attr("x", (d) => d.x!).attr("y", (d) => d.y!);
+
+      svgLinkLabels
+        .attr("x", (d) => {
+          const hasReverse = links.some(
+            (l) => l.source === d.target && l.target === d.source,
+          );
+          return (
+            calculatePointCurvedCoordinates(
+              d.source as Node,
+              d.target as Node,
+              hasReverse,
+            )[0] - 15
+          );
+        })
+        .attr("y", (d) => {
+          const hasReverse = links.some(
+            (l) => l.source === d.target && l.target === d.source,
+          );
+          return (
+            calculatePointCurvedCoordinates(
+              d.source as Node,
+              d.target as Node,
+              hasReverse,
+            )[1] + 15
+          );
+        });
+
+      svg
+        .selectAll<SVGCircleElement, Node>(".final-inner-circle")
+        .attr("cx", (d) => d.x ?? 0)
+        .attr("cy", (d) => d.y ?? 0);
+
+      svg.selectAll<SVGCircleElement, Node>(".initial-arrow").attr("d", (d) => {
+        const x = d.x ?? 0;
+        const y = d.y ?? 0;
+
+        // Triangle head pointing left
+        const tipX = x - 30;
+        const tipY = y;
+
+        return `M${tipX - 7.5},${tipY - 6} L${tipX},${tipY} L${tipX - 7.5},${tipY + 6} Z`;
+      });
+    });
+  }, []);
+
+  return <svg ref={svgRef} className="absolute inset-0 z-0 w-full h-full" />;
+}
