@@ -1,6 +1,13 @@
 import { FastForward, Play, StepForward } from "lucide-react";
+import { useState } from "react";
 
-export default function HUD() {
+type HUDProps = {
+  onPlay: (input_string: string) => void;
+};
+
+export default function HUD({ onPlay }: HUDProps) {
+  const [inputString, setInputString] = useState<string>("");
+
   return (
     <div className="absolute z-10 flex flex-col w-full h-full justify-between pointer-events-none">
       <div className="flex justify-between">
@@ -16,11 +23,16 @@ export default function HUD() {
             type="text"
             className="bg-gray-100 text-gray-700 tracking-widest font-mono rounded-2xl w-80 h-16 m-4 px-8 pointer-events-auto"
             placeholder="Enter input..."
+            value={inputString}
+            onChange={(e) => setInputString(e.target.value)}
           />
           <button className="flex items-center justify-center bg-gray-100 rounded-2xl w-16 h-16 mr-4 px-8 pointer-events-auto hover:cursor-pointer">
             <StepForward className="min-w-12 text-gray-600" />
           </button>
-          <button className="flex items-center justify-center bg-gray-100 rounded-2xl w-16 h-16 mr-4 pointer-events-auto hover:cursor-pointer">
+          <button
+            className="flex items-center justify-center bg-gray-100 rounded-2xl w-16 h-16 mr-4 pointer-events-auto hover:cursor-pointer"
+            onClick={() => onPlay(inputString)}
+          >
             <Play className="min-w-12 text-gray-600" />
           </button>
           <button className="flex items-center justify-center bg-gray-100 rounded-2xl w-16 h-16 mr-4 pointer-events-auto hover:cursor-pointer">
