@@ -26,6 +26,14 @@ type ForceGraphProps = {
   highlightedSuccessNodes: Node[];
 };
 
+// Generic type to make it easier to read
+type D3Selection<T extends d3.BaseType, U> = d3.Selection<
+  T | d3.BaseType,
+  U,
+  SVGGElement,
+  unknown
+>;
+
 const VIEWBOX_WIDTH = 1920;
 const VIEWBOX_HEIGHT = 1080;
 const ARROW_LENGTH = 30;
@@ -59,30 +67,10 @@ export default function Graph({
     links,
   }: {
     svg: d3.Selection<SVGSVGElement, unknown, null, undefined>;
-    svgNodes: d3.Selection<
-      d3.BaseType | SVGCircleElement,
-      Node,
-      SVGGElement,
-      unknown
-    >;
-    svgLinks: d3.Selection<
-      d3.BaseType | SVGPathElement,
-      Link,
-      SVGGElement,
-      unknown
-    >;
-    svgNodeLabels: d3.Selection<
-      d3.BaseType | SVGTextElement,
-      Node,
-      SVGGElement,
-      unknown
-    >;
-    svgLinkLabels: d3.Selection<
-      d3.BaseType | SVGTextElement,
-      Link,
-      SVGGElement,
-      unknown
-    >;
+    svgNodes: D3Selection<SVGCircleElement, Node>;
+    svgLinks: D3Selection<SVGPathElement, Link>;
+    svgNodeLabels: D3Selection<SVGTextElement, Node>;
+    svgLinkLabels: D3Selection<SVGTextElement, Link>;
     links: Link[];
   }) {
     svgNodes.attr("cx", (d) => d.x!).attr("cy", (d) => d.y!);
