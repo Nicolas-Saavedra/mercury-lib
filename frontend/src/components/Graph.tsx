@@ -2,6 +2,19 @@ import { useEffect, useRef } from "react";
 import * as d3 from "d3";
 import { Link } from "../types/link";
 import { Node } from "../types/node";
+import {
+  createGlowEffect,
+  createInitialFinalNodeDecorations,
+  createLinkLabels,
+  createLinks,
+  createMarkers,
+  createNodeLabels,
+  createNodes,
+} from "../lib/graph";
+import {
+  calculateCurvedPath,
+  calculateLinkLabelPosition,
+} from "../lib/arrowPosition";
 
 type ForceGraphProps = {
   nodes: Node[];
@@ -12,6 +25,11 @@ type ForceGraphProps = {
   highlightedErrorNodes: Node[];
   highlightedSuccessNodes: Node[];
 };
+
+const VIEWBOX_WIDTH = 1920;
+const VIEWBOX_HEIGHT = 1080;
+const ARROW_LENGTH = 30;
+const LINK_LABEL_OFFSET = { x: -15, y: 15 };
 
 export default function Graph({
   nodes,
@@ -24,321 +42,103 @@ export default function Graph({
 }: ForceGraphProps) {
   const svgRef = useRef<SVGSVGElement>(null);
 
-  // 24, -6
-  function createMarkers(
-    svg: d3.Selection<SVGSVGElement, unknown, null, undefined>,
-  ) {
-    svg
-      .append("defs")
-      .selectAll("marker")
-      .data(["end"])
-      .enter()
-      .append("marker")
-      .attr("id", (d) => d)
-      .attr("viewBox", "0 -5 10 10")
-      .attr("refX", 28)
-      .attr("refY", 0)
-      .attr("markerWidth", 6)
-      .attr("markerHeight", 6)
-      .attr("orient", "auto")
-      .append("path")
-      .attr("fill", "#aaa")
-      .attr("d", "M0,-5L10,0L0,5");
-
-    svg
-      .append("defs")
-      .selectAll("marker")
-      .data(["loop-arrow"])
-      .enter()
-      .append("marker")
-      .attr("id", (d) => d)
-      .attr("viewBox", "0 -5 10 10")
-      .attr("refX", 24)
-      .attr("refY", -6)
-      .attr("markerWidth", 6)
-      .attr("markerHeight", 6)
-      .attr("orient", "auto")
-      .append("path")
-      .attr("fill", "#aaa")
-      .attr("d", "M0,-5L10,0L0,5");
+  function nodeIdSet(nodes: Node[]): Set<string> {
+    return new Set(nodes.map((n) => n.id));
   }
 
-  function createGlowEffect(
-    svg: d3.Selection<SVGSVGElement, unknown, null, undefined>,
-    color: string,
-    intensity: number,
-  ) {
-    const defs = svg.append("defs");
+  const highlightedIds = nodeIdSet(highlightedNodes);
+  const highlightedIdsErrors = nodeIdSet(highlightedErrorNodes);
+  const highlightedIdsSuccess = nodeIdSet(highlightedSuccessNodes);
 
-    const filter = defs
-      .append("filter")
-      .attr("id", `glow-${color}`)
-      .attr("x", "-50%")
-      .attr("y", "-50%")
-      .attr("width", "200%")
-      .attr("height", "200%");
-
-    // Add blur
-    filter
-      .append("feGaussianBlur")
-      .attr("in", "SourceGraphic")
-      .attr("stdDeviation", intensity) // ← Brighter glow by increasing blur
-      .attr("result", "blur");
-
-    // Add green color flood
-    filter
-      .append("feFlood")
-      .attr("flood-color", color) // ← Green color
-      .attr("flood-opacity", "1")
-      .attr("result", "color");
-
-    // Mask the flood over the blur
-    filter
-      .append("feComposite")
-      .attr("in", "color")
-      .attr("in2", "blur")
-      .attr("operator", "in")
-      .attr("result", "coloredBlur");
-
-    // Merge with original graphic
-    const merge = filter.append("feMerge");
-    merge.append("feMergeNode").attr("in", "coloredBlur");
-    merge.append("feMergeNode").attr("in", "SourceGraphic");
-  }
-
-  function createLinks(
-    svg: d3.Selection<SVGSVGElement, unknown, null, undefined>,
-  ) {
-    return svg
-      .append("g")
-      .attr("stroke", "#aaa")
-      .selectAll("path")
-      .data(links)
-      .join("path")
-      .attr("fill", "none")
-      .attr("stroke-width", 2)
-      .attr("marker-end", (d) => {
-        return d.source === d.target ? "url(#loop-arrow)" : "url(#end)";
-      });
-  }
-
-  function createLinkLabels(
-    svg: d3.Selection<SVGSVGElement, unknown, null, undefined>,
-  ) {
-    return svg
-      .append("g")
-      .selectAll("text")
-      .data(links)
-      .join("text")
-      .text((d) => d.label)
-      .attr("font-size", "12px")
-      .attr("font-family", "sans-serif")
-      .attr("fill", "#555")
-      .attr("text-anchor", "middle")
-      .attr("dominant-baseline", "central")
-      .attr("pointer-events", "none");
-  }
-
-  function createNodes(
-    svg: d3.Selection<SVGSVGElement, unknown, null, undefined>,
-    simulation: d3.Simulation<Node, undefined>,
-  ) {
-    return svg
-      .append("g")
-      .selectAll("circle")
-      .data(nodes)
-      .join("circle")
-      .attr("r", 24)
-      .attr("fill", "oklch(96.7% 0.003 264.542)")
-      .attr("stroke", "oklch(37.3% 0.034 259.733)")
-      .attr("stroke-width", 1.5)
-      .call(
-        d3
-          .drag<SVGCircleElement, Node>()
-          .on("start", (event, d) => {
-            if (!event.active) simulation.alphaTarget(0.3).restart();
-            d.fx = d.x;
-            d.fy = d.y;
-          })
-          .on("drag", (event, d) => {
-            d.fx = event.x;
-            d.fy = event.y;
-          })
-          .on("end", (event, d) => {
-            if (!event.active) simulation.alphaTarget(0);
-            d.fx = null;
-            d.fy = null;
-          }) as any, // WARNING: Check up on this later
-      );
-  }
-  function createInitialFinalNodeDecorations(
-    svg: d3.Selection<SVGSVGElement, unknown, null, undefined>,
+  function updatePositions({
+    svg,
+    svgNodes,
+    svgLinks,
+    svgNodeLabels,
+    svgLinkLabels,
+    links,
+  }: {
+    svg: d3.Selection<SVGSVGElement, unknown, null, undefined>;
     svgNodes: d3.Selection<
       d3.BaseType | SVGCircleElement,
       Node,
       SVGGElement,
       unknown
-    >,
-  ) {
-    svg.selectAll(".final-inner-circle").remove();
-    svg.selectAll(".initial-arrow").remove();
+    >;
+    svgLinks: d3.Selection<
+      d3.BaseType | SVGPathElement,
+      Link,
+      SVGGElement,
+      unknown
+    >;
+    svgNodeLabels: d3.Selection<
+      d3.BaseType | SVGTextElement,
+      Node,
+      SVGGElement,
+      unknown
+    >;
+    svgLinkLabels: d3.Selection<
+      d3.BaseType | SVGTextElement,
+      Link,
+      SVGGElement,
+      unknown
+    >;
+    links: Link[];
+  }) {
+    svgNodes.attr("cx", (d) => d.x!).attr("cy", (d) => d.y!);
 
-    svgNodes
-      .filter((d) => finalNodes.map((node) => node.id).includes(d.id))
-      .each(function (d) {
-        svg
-          .append<SVGCircleElement>("circle")
-          .datum(d)
-          .attr("class", "final-inner-circle")
-          .attr("r", 20)
-          .attr("fill", "none")
-          .attr("stroke", "oklch(37.3% 0.034 259.733)")
-          .attr("stroke-width", 1.5);
-      });
-    svgNodes
-      .filter((d) => initialNode.id == d.id)
-      .each(function (d) {
-        svg
-          .append<SVGPathElement>("path")
-          .datum(d)
-          .attr("class", "initial-arrow")
-          .attr("fill", "oklch(37.3% 0.034 259.733)");
-      });
-  }
+    svgLinks.attr("d", (d) => {
+      const hasReverse = links.some(
+        (l) => l.source === d.target && l.target === d.source,
+      );
+      return calculateCurvedPath(
+        d.source as Node,
+        d.target as Node,
+        hasReverse,
+      );
+    });
 
-  function createNodeLabels(
-    svg: d3.Selection<SVGSVGElement, unknown, null, undefined>,
-  ) {
-    return svg
-      .append("g")
-      .selectAll("text")
-      .data(nodes)
-      .join("text")
-      .text((d) => d.id)
-      .attr("font-size", "10px")
-      .attr("font-family", "sans-serif")
-      .attr("text-anchor", "middle")
-      .attr("dominant-baseline", "central")
-      .attr("fill", "oklch(0% 0 0)")
-      .attr("pointer-events", "none");
-  }
+    svgNodeLabels.attr("x", (d) => d.x!).attr("y", (d) => d.y!);
 
-  function computeEdgeGeometry(
-    source: Node,
-    target: Node,
-    hasReverse: boolean,
-    strength = 0.3,
-  ): {
-    start: [number, number];
-    end: [number, number];
-    control?: [number, number];
-    control2?: [number, number]; // <-- second control for cubic
-  } {
-    const x1 = source.x!,
-      y1 = source.y!;
-    const x2 = target.x!,
-      y2 = target.y!;
+    svgLinkLabels.each(function (d) {
+      const hasReverse = links.some(
+        (l) => l.source === d.target && l.target === d.source,
+      );
 
-    const start: [number, number] = [x1, y1];
-    const end: [number, number] = [x2, y2];
+      const [x, y] = calculateLinkLabelPosition(
+        d.source as Node,
+        d.target as Node,
+        hasReverse,
+      );
 
-    if (!hasReverse) {
-      return { start, end };
-    }
+      d3.select(this)
+        .attr("x", x + LINK_LABEL_OFFSET.x)
+        .attr("y", y + LINK_LABEL_OFFSET.y);
+    });
 
-    if (x1 === x2 && y1 === y2) {
-      const radius = 80;
-      const angle = Math.PI / 2; // downward
-      const spread = Math.PI / 2; // wide curve
+    svg
+      .selectAll<SVGCircleElement, Node>(".final-inner-circle")
+      .attr("cx", (d) => d.x ?? 0)
+      .attr("cy", (d) => d.y ?? 0);
 
-      const angle1 = angle - spread / 2;
-      const angle2 = angle + spread / 2;
+    svg.selectAll<SVGCircleElement, Node>(".initial-arrow").attr("d", (d) => {
+      const x = d.x ?? 0;
+      const y = d.y ?? 0;
 
-      const control: [number, number] = [
-        x1 + radius * Math.cos(angle1),
-        y1 + radius * Math.sin(angle1),
-      ];
+      // Triangle head pointing left
+      const tipX = x - ARROW_LENGTH;
+      const tipY = y;
 
-      const control2: [number, number] = [
-        x1 + radius * Math.cos(angle2),
-        y1 + radius * Math.sin(angle2),
-      ];
-
-      return { start, end, control, control2 };
-    }
-
-    const dx = x2 - x1;
-    const dy = y2 - y1;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-    const offset = strength * distance;
-
-    const perpX = -dy / distance;
-    const perpY = dx / distance;
-
-    const cx = (x1 + x2) / 2 + perpX * offset;
-    const cy = (y1 + y2) / 2 + perpY * offset;
-    const control: [number, number] = [cx, cy];
-
-    return { start, end, control };
-  }
-
-  function calculateCurvedPath(
-    source: Node,
-    target: Node,
-    hasReverse: boolean,
-  ): string {
-    const { start, end, control, control2 } = computeEdgeGeometry(
-      source,
-      target,
-      hasReverse,
-    );
-
-    if (control2) {
-      // Self-loop using cubic Bézier
-      return `M${start[0]},${start[1]} C${control![0]},${control![1]} ${control2[0]},${control2[1]} ${end[0]},${end[1]}`;
-    }
-
-    if (control) {
-      return `M${start[0]},${start[1]} Q${control[0]},${control[1]} ${end[0]},${end[1]}`;
-    }
-
-    return `M${start[0]},${start[1]} L${end[0]},${end[1]}`;
-  }
-
-  function calculateLinkLabelPosition(
-    source: Node,
-    target: Node,
-    hasReverse: boolean,
-  ): [number, number] {
-    const { start, end, control, control2 } = computeEdgeGeometry(
-      source,
-      target,
-      hasReverse,
-    );
-
-    if (control2) {
-      // For self-loop: average all 4 points (including start/end)
-      const avgX = (start[0] + control![0] + control2[0] + end[0]) / 4;
-      const avgY = (start[1] + control![1] + control2[1] + end[1]) / 4;
-      return [avgX, avgY];
-    }
-
-    if (control) {
-      return control;
-    }
-
-    return [(start[0] + end[0]) / 2, (start[1] + end[1]) / 2];
+      return `M${tipX - 7.5},${tipY - 6} L${tipX},${tipY} L${tipX - 7.5},${tipY + 6} Z`;
+    });
   }
 
   useEffect(() => {
     if (!svgRef.current) return;
 
-    const width = 1920;
-    const height = 1080;
-
     const svg = d3.select(svgRef.current);
     svg.selectAll("*").remove(); // Clear previous render
-    svg.attr("viewBox", `0 0 ${width} ${height}`);
+    svg.attr("viewBox", `0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}`);
 
     const simulation = d3
       .forceSimulation<Node>(nodes)
@@ -350,7 +150,7 @@ export default function Graph({
           .distance(350),
       )
       .force("charge", d3.forceManyBody().strength(-500))
-      .force("center", d3.forceCenter(width / 2, height / 2));
+      .force("center", d3.forceCenter(VIEWBOX_WIDTH / 2, VIEWBOX_HEIGHT / 2));
 
     createMarkers(svg);
 
@@ -358,70 +158,22 @@ export default function Graph({
     createGlowEffect(svg, "crimson", 8);
     createGlowEffect(svg, "yellow", 12);
 
-    const svgLinks = createLinks(svg);
-    const svgNodes = createNodes(svg, simulation);
+    const svgLinks = createLinks(svg, links);
+    const svgNodes = createNodes(svg, nodes, simulation);
 
-    const svgLinkLabels = createLinkLabels(svg);
-    const svgNodeLabels = createNodeLabels(svg);
+    const svgLinkLabels = createLinkLabels(svg, links);
+    const svgNodeLabels = createNodeLabels(svg, nodes);
 
-    createInitialFinalNodeDecorations(svg, svgNodes);
+    createInitialFinalNodeDecorations(svg, initialNode, finalNodes, svgNodes);
 
     simulation.on("tick", () => {
-      svgNodes.attr("cx", (d) => d.x!).attr("cy", (d) => d.y!);
-
-      svgLinks.attr("d", (d) => {
-        const hasReverse = links.some(
-          (l) => l.source === d.target && l.target === d.source,
-        );
-        return calculateCurvedPath(
-          d.source as Node,
-          d.target as Node,
-          hasReverse,
-        );
-      });
-
-      svgNodeLabels.attr("x", (d) => d.x!).attr("y", (d) => d.y!);
-
-      svgLinkLabels
-        .attr("x", (d) => {
-          const hasReverse = links.some(
-            (l) => l.source === d.target && l.target === d.source,
-          );
-          return (
-            calculateLinkLabelPosition(
-              d.source as Node,
-              d.target as Node,
-              hasReverse,
-            )[0] - 15
-          );
-        })
-        .attr("y", (d) => {
-          const hasReverse = links.some(
-            (l) => l.source === d.target && l.target === d.source,
-          );
-          return (
-            calculateLinkLabelPosition(
-              d.source as Node,
-              d.target as Node,
-              hasReverse,
-            )[1] + 15
-          );
-        });
-
-      svg
-        .selectAll<SVGCircleElement, Node>(".final-inner-circle")
-        .attr("cx", (d) => d.x ?? 0)
-        .attr("cy", (d) => d.y ?? 0);
-
-      svg.selectAll<SVGCircleElement, Node>(".initial-arrow").attr("d", (d) => {
-        const x = d.x ?? 0;
-        const y = d.y ?? 0;
-
-        // Triangle head pointing left
-        const tipX = x - 30;
-        const tipY = y;
-
-        return `M${tipX - 7.5},${tipY - 6} L${tipX},${tipY} L${tipX - 7.5},${tipY + 6} Z`;
+      updatePositions({
+        svg,
+        svgNodes,
+        svgLinks,
+        svgNodeLabels,
+        svgLinkLabels,
+        links,
       });
     });
   }, []);
@@ -430,17 +182,12 @@ export default function Graph({
     if (!svgRef.current) return;
     const svg = d3.select(svgRef.current);
 
-    svg
-      .selectAll<SVGCircleElement, Node>("circle")
-      .attr("filter", (d) =>
-        highlightedNodes.map((n) => n.id).includes(d.id)
-          ? "url(#glow-yellow)"
-          : highlightedErrorNodes.map((n) => n.id).includes(d.id)
-            ? "url(#glow-crimson)"
-            : highlightedSuccessNodes.map((n) => n.id).includes(d.id)
-              ? "url(#glow-green)"
-              : null,
-      );
+    svg.selectAll<SVGCircleElement, Node>("circle").attr("filter", (d) => {
+      if (highlightedIds.has(d.id)) return "url(#glow-yellow)";
+      if (highlightedIdsErrors.has(d.id)) return "url(#glow-crimson)";
+      if (highlightedIdsSuccess.has(d.id)) return "url(#glow-green)";
+      return null;
+    });
   }, [highlightedNodes, highlightedErrorNodes, highlightedSuccessNodes]);
 
   return <svg ref={svgRef} className="absolute inset-0 z-0 w-full h-full" />;
