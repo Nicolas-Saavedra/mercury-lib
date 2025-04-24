@@ -1,12 +1,23 @@
-import { FastForward, Play, StepForward } from "lucide-react";
+import { FastForward, Play, RotateCcw, StepForward } from "lucide-react";
 import { useEffect, useState } from "react";
 
 type HUDProps = {
   onPlay: (input_string: string) => void;
+  onNextStep: (input_string: string) => void;
+  onFastForward: (input_string: string) => void;
+  onReset: () => void;
+  onChangeInputString: () => void;
   onChangeDelay: (delay: number) => void;
 };
 
-export default function HUD({ onPlay, onChangeDelay }: HUDProps) {
+export default function HUD({
+  onPlay,
+  onNextStep,
+  onFastForward,
+  onReset,
+  onChangeInputString,
+  onChangeDelay,
+}: HUDProps) {
   const [inputString, setInputString] = useState<string>("");
   const [stringDelay, setStringDelay] = useState<string>("1.0");
   const [delay, setDelay] = useState<number>(1);
@@ -37,13 +48,13 @@ export default function HUD({ onPlay, onChangeDelay }: HUDProps) {
 
   const handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === "Enter") {
-      console.log("Start the ship", inputString);
       onPlay(inputString);
     }
   };
 
   useEffect(() => {
     window.addEventListener("keydown", handleKeyDown);
+    onChangeInputString(); // Reset execution
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [inputString]);
 
@@ -69,7 +80,10 @@ export default function HUD({ onPlay, onChangeDelay }: HUDProps) {
             value={inputString}
             onChange={(e) => setInputString(e.target.value)}
           />
-          <button className="flex items-center justify-center bg-gray-100 rounded-2xl w-16 h-16 mr-4 px-8 pointer-events-auto hover:cursor-pointer">
+          <button
+            className="flex items-center justify-center bg-gray-100 rounded-2xl w-16 h-16 mr-4 px-8 pointer-events-auto hover:cursor-pointer"
+            onClick={() => onNextStep(inputString)}
+          >
             <StepForward className="min-w-12 text-gray-600" />
           </button>
           <button
@@ -78,8 +92,17 @@ export default function HUD({ onPlay, onChangeDelay }: HUDProps) {
           >
             <Play className="min-w-12 text-gray-600" />
           </button>
-          <button className="flex items-center justify-center bg-gray-100 rounded-2xl w-16 h-16 mr-4 pointer-events-auto hover:cursor-pointer">
+          <button
+            className="flex items-center justify-center bg-gray-100 rounded-2xl w-16 h-16 mr-4 pointer-events-auto hover:cursor-pointer"
+            onClick={() => onFastForward(inputString)}
+          >
             <FastForward className="min-w-12 text-gray-600" />
+          </button>
+          <button
+            className="flex items-center justify-center bg-gray-100 rounded-2xl w-16 h-16 mr-4 pointer-events-auto hover:cursor-pointer"
+            onClick={() => onReset()}
+          >
+            <RotateCcw className="min-w-12 text-gray-600" />
           </button>
         </div>
       </div>

@@ -140,8 +140,6 @@ export default function Graph({
       .force("charge", d3.forceManyBody().strength(-500))
       .force("center", d3.forceCenter(VIEWBOX_WIDTH / 2, VIEWBOX_HEIGHT / 2));
 
-    createMarkers(svg);
-
     createGlowEffect(svg, "green", 10);
     createGlowEffect(svg, "crimson", 8);
     createGlowEffect(svg, "yellow", 12);
@@ -152,6 +150,7 @@ export default function Graph({
     const svgLinkLabels = createLinkLabels(svg, links);
     const svgNodeLabels = createNodeLabels(svg, nodes);
 
+    createMarkers(svg);
     createInitialFinalNodeDecorations(svg, initialNode, finalNodes, svgNodes);
 
     simulation.on("tick", () => {

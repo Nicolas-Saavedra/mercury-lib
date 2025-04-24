@@ -6,6 +6,7 @@ import { Node } from "./types/node";
 import HUD from "./components/HUD";
 import axios from "axios";
 import { Execution } from "./types/execution";
+import { processTransitions } from "./lib/automata";
 
 const BACKEND_URL = "http://localhost:8081";
 
@@ -15,6 +16,7 @@ export default function App() {
     null,
   );
 
+  // Set highlights, regular = yellow, error = red, success = green
   const [highlightedNodes, setHighlighedNodes] = useState<Node[]>([]);
   const [highlightedErrorNodes, setHighlighedErrorNodes] = useState<Node[]>([]);
   const [highlightedSuccessNodes, setHighlighedSuccessNodes] = useState<Node[]>(
@@ -38,14 +40,49 @@ export default function App() {
       const automataResponse = (
         await axios.get<Automata>(`${BACKEND_URL}/automata`)
       ).data;
-      setAutomata(automataResponse);
+      const processedAutomata = processTransitions(automataResponse);
+      setAutomata(processedAutomata);
     } catch (err) {
       console.error("Failed to fetch automata:", err);
     }
   };
 
   const playAutomata = async (input_string: string) => {
-    fetchExecution(input_string);
+    if (!currentExecution) {
+      await fetchExecution(input_string);
+    } else {
+      setCurrentStep((currentStep) =>
+        currentStep !== null
+          ? Math.min(currentStep + 1, currentExecution.nodes.length - 1)
+          : null,
+      );
+    }
+    setExecutionRunning(true);
+  };
+
+  const nextStepAutomata = async (input_string: string) => {
+    if (currentExecution) {
+      setCurrentStep((currentStep) =>
+        currentStep !== null
+          ? Math.min(currentStep + 1, currentExecution.nodes.length - 1)
+          : null,
+      );
+      setExecutionRunning(false);
+    } else {
+      await fetchExecution(input_string);
+    }
+  };
+
+  const fastForwardAutomata = async (input_string: string) => {
+    let newExecution: Execution | null = null;
+    if (!currentExecution) {
+      newExecution = await fetchExecution(input_string);
+    }
+    setCurrentStep((currentStep) =>
+      currentStep !== null
+        ? (currentExecution ? currentExecution : newExecution!).nodes.length
+        : null,
+    );
   };
 
   const fetchExecution = async (input_string: string) => {
@@ -62,7 +99,19 @@ export default function App() {
     ).data;
     setCurrentExecution(executionResponse);
     setCurrentStep(0);
-    setExecutionRunning(true);
+    return executionResponse;
+  };
+
+  const clearAllHighlightedNodes = () => {
+    setHighlighedNodes([]);
+    setHighlighedSuccessNodes([]);
+    setHighlighedErrorNodes([]);
+  };
+
+  const resetExecution = () => {
+    setCurrentExecution(null);
+    setCurrentStep(null);
+    clearAllHighlightedNodes();
   };
 
   useEffect(() => {
@@ -72,24 +121,23 @@ export default function App() {
   useEffect(() => {
     if (currentStep === null || currentExecution === null) return;
 
-    if (currentStep >= currentExecution.nodes.length - 1) {
-      const lastNode =
-        currentExecution.nodes[currentExecution.nodes.length - 1];
+    clearAllHighlightedNodes();
 
-      if (currentExecution.accepted) {
-        setHighlighedSuccessNodes([lastNode]);
-        setHighlighedErrorNodes([]);
-      } else {
-        setHighlighedSuccessNodes([]);
-        setHighlighedErrorNodes([lastNode]);
+    setTimeout(() => {
+      if (currentStep >= currentExecution.nodes.length - 1) {
+        const lastNode =
+          currentExecution.nodes[currentExecution.nodes.length - 1];
+
+        if (currentExecution.accepted) {
+          setHighlighedSuccessNodes([lastNode]);
+        } else {
+          setHighlighedErrorNodes([lastNode]);
+        }
+        return;
       }
-      setHighlighedNodes([]);
-      return;
-    }
 
-    setHighlighedNodes([currentExecution.nodes[currentStep]]);
-    setHighlighedErrorNodes([]);
-    setHighlighedSuccessNodes([]);
+      setHighlighedNodes([currentExecution.nodes[currentStep]]);
+    }, 150 * stepDelay);
   }, [currentStep, currentExecution]);
 
   useEffect(() => {
@@ -125,6 +173,10 @@ export default function App() {
       )}
       <HUD
         onPlay={playAutomata}
+        onNextStep={nextStepAutomata}
+        onFastForward={fastForwardAutomata}
+        onReset={resetExecution}
+        onChangeInputString={resetExecution}
         onChangeDelay={(newDelay) => setStepDelay(newDelay)}
       />
     </div>

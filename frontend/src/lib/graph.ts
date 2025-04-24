@@ -5,6 +5,7 @@ import { Node } from "../types/node";
 export function createMarkers(
   svg: d3.Selection<SVGSVGElement, unknown, null, undefined>,
 ) {
+  // Defining two markers because self loops need different offset
   svg
     .append("defs")
     .selectAll("marker")
