@@ -1,6 +1,6 @@
 import ast
-from collections.abc import Hashable, Iterable
-from typing import Generator, cast
+from collections.abc import Hashable, Iterable, Generator
+from typing import cast
 from automata.fa.dfa import DFA
 from frozendict import frozendict
 
