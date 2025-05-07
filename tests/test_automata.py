@@ -1,5 +1,6 @@
 from pygold.automata.deterministic_finite_automata import DeterministicFiniteAutomata
 from pygold.decorators.delta_function import DeltaFunction
+from pygold.exceptions import MissingDefinitionException
 from pygold.operations.sets import S
 
 __author__ = "Nicolas-Saavedra"
@@ -45,6 +46,23 @@ def test_automata_simple_scenario():
     assert not automata.accepts_input("01")
     assert not automata.accepts_input("1")
     assert automata.accepts_input("")
+
+
+def test_automata_missing_definition():
+    states = [0, 1]
+    input_symbols = "01"
+    initial_state = 0
+    final_states = [0]
+
+    delta = DeltaFunction()
+
+    try:
+        __ = DeterministicFiniteAutomata(
+            states, input_symbols, initial_state, final_states, delta
+        )
+        assert False, "Expected MissingDefinitionException, constructor passed"
+    except MissingDefinitionException as e:
+        assert True
 
 
 def test_automata_Amod3xBmod3_scenario():

@@ -1,8 +1,6 @@
 from collections.abc import Generator, Iterable
 from itertools import zip_longest
-from typing import override
 from pygold.automata.deterministic_finite_automata import DeterministicFiniteAutomata
-from pygold.decorators import output_function
 from pygold.decorators.delta_function import DeltaFunction
 from pygold.decorators.output_function import OutputFunction
 from pygold.exceptions import InvalidOutputException
@@ -11,7 +9,7 @@ from pygold.types.state import InputState, InputSymbol
 
 class DeterministicFiniteTransducer(DeterministicFiniteAutomata):
     """
-    A deterministic finite transducer (DFT) modeled as a Moore machine.
+    A deterministic finite transducer (DFT) modeled as a Mealy machine.
 
     This class extends a DFA by adding output behavior, associating each state
     with an output symbol. It is defined using a transition function for state
@@ -25,7 +23,7 @@ class DeterministicFiniteTransducer(DeterministicFiniteAutomata):
         initial_state: String representation of the initial state.
         final_states: Set of string representations of accepting states.
         transition_function: A function mapping current states and input symbols to next states.
-        output_function: A function mapping states to output symbols, representing Moore-style outputs.
+        output_function: A function mapping states to output symbols, representing Mealy-style outputs.
     """
 
     _output_symbols: frozenset[str]
@@ -42,7 +40,7 @@ class DeterministicFiniteTransducer(DeterministicFiniteAutomata):
         output_function: OutputFunction,
     ) -> None:
         """
-        Initialize the DFT (Moore machine) with the specified states, input/output symbols,
+        Initialize the DFT (Mealy machine) with the specified states, input/output symbols,
         initial state, accepting states, transition function, and output function.
 
         Args:
@@ -82,6 +80,9 @@ class DeterministicFiniteTransducer(DeterministicFiniteAutomata):
         return generator()
 
     def transduce_input(self, input_str: str) -> str:
+        """
+        Returns the result from the automata after transducing from the input string
+        """
         tape = ""
         for output_symbol in self.read_input_transducer_stepwise(input_str):
             tape += output_symbol
