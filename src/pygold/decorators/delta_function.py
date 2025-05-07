@@ -21,7 +21,7 @@ class DeltaFunction:
     A delta function is a function that an automata can use in order
     to create transitions between states based on the next character
     read by the machine. This function can have one or more definitions
-    such that it can handle different lenghts of tuples in expected states
+    such that it can handle different lengths of tuples in expected states
     """
 
     _registry: Registry
@@ -40,6 +40,7 @@ class DeltaFunction:
             raise MissingDefinitionException(self._registry, args, next_symbol)
 
         resolver = self._registry[type_args]
+
         return resolver(*args, **{NEXT_SYMBOL_KEYWORD_NAME: next_symbol})
 
     def definition(self):
@@ -77,7 +78,8 @@ class DeltaFunction:
 
         Do know that for convenience, it is recommended to name the functions as `_`
         in order for python to understand that the function will not be called by name,
-        but by an external tool, such as pyGold
+        but by an external library/caller, such as pyGold. Could help avoid naming warnings in
+        traditional LSP implementations of common editors
         """
 
         def decorator(func: Callable[..., InputState]):

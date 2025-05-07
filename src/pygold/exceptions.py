@@ -42,3 +42,16 @@ class MissingDefinitionException(Exception):
         super().__init__(
             f"Could not call the transition from state {state} with symbol {next_symbol}, could not find definition in registry, types defined: {list(registry.keys())}"
         )
+
+
+class InvalidReturnTypeException(Exception):
+    def __init__(
+        self,
+        caller_name: str,
+        expected_type: type,
+        recieved_type: type,
+        value: Hashable,
+    ) -> None:
+        super().__init__(
+            f"Could not return from {caller_name}, expected to return type {expected_type}, recieved {value} of type {recieved_type} instead"
+        )

@@ -23,5 +23,5 @@ function management easier
 type InputSymbol = str
 """
 Wrapper over string to represent a single input symbol. It should always be a one-character
-string value, however, this verification may not be enforced at runtime for now
+string value, however, this verification might not be enforced at runtime for now
 """
