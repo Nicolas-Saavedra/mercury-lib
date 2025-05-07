@@ -1,3 +1,4 @@
+from frozendict import frozendict
 from pygold.automata.deterministic_finite_automata import DeterministicFiniteAutomata
 from pygold.decorators.delta_function import DeltaFunction
 from pygold.exceptions import MissingDefinitionException
@@ -63,6 +64,31 @@ def test_automata_missing_definition():
         assert False, "Expected MissingDefinitionException, constructor passed"
     except MissingDefinitionException as e:
         assert True
+
+
+def test_automata_properties():
+    states = [0, 1]
+    input_symbols = "01"
+    initial_state = 0
+    final_states = [0]
+
+    delta = DeltaFunction()
+
+    @delta.definition()
+    def _(_: int, next: str):
+        return int(next)
+
+    automata = DeterministicFiniteAutomata(
+        states, input_symbols, initial_state, final_states, delta
+    )
+
+    assert automata.states == frozenset([(0,), (1,)])
+    assert automata.input_symbols == frozenset(["0", "1"])
+    assert automata.initial_state == (0,)
+    assert automata.final_states == frozenset([(0,)])
+    assert automata.transitions == frozendict(
+        {((0,), "0"): (0,), ((1,), "0"): (0,), ((0,), "1"): (1,), ((1,), "1"): (1,)}
+    )
 
 
 def test_automata_Amod3xBmod3_scenario():
