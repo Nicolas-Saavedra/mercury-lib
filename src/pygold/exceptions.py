@@ -44,6 +44,19 @@ class MissingDefinitionException(Exception):
         )
 
 
+class InvalidOutputException(Exception):
+    def __init__(
+        self,
+        state: tuple[Hashable],
+        next_symbol: str,
+        valid_outputs: list[str],
+        found_output: Hashable,
+    ) -> None:
+        super().__init__(
+            f"Could not call the transition from state {state} with symbol {next_symbol}, output function returned value {found_output} which is not part of {valid_outputs}"
+        )
+
+
 class InvalidReturnTypeException(Exception):
     def __init__(
         self,
@@ -53,5 +66,12 @@ class InvalidReturnTypeException(Exception):
         value: Hashable,
     ) -> None:
         super().__init__(
-            f"Could not return from {caller_name}, expected to return type {expected_type}, recieved {value} of type {recieved_type} instead"
+            f"Could not return from {caller_name}, expected to return type {expected_type.__name__}, recieved {value} of type {recieved_type.__name__} instead"
+        )
+
+
+class WrongArgumentException(Exception):
+    def __init__(self, expected_class: type, found_class: type) -> None:
+        super().__init__(
+            f"Expected to find class '{expected_class.__name__}' as input, recieved '{found_class.__name__}' instead"
         )

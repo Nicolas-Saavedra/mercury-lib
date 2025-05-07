@@ -4,7 +4,8 @@ from typing import cast
 from automata.fa.dfa import DFA
 from frozendict import frozendict
 
-from pygold.exceptions import MissingStateException
+from pygold.decorators.output_function import OutputFunction
+from pygold.exceptions import MissingStateException, WrongArgumentException
 from pygold.decorators.delta_function import DeltaFunction
 from pygold.types.state import State, InputSymbol, InputState
 
@@ -83,6 +84,10 @@ class DeterministicFiniteAutomata:
                 for state in final_states
             }
         )
+
+        if isinstance(transition_function, OutputFunction):
+            raise WrongArgumentException(DeltaFunction, OutputFunction)
+
         self._transition_function = transition_function
         self._transitions = self._generate_mappings()
 
@@ -96,6 +101,10 @@ class DeterministicFiniteAutomata:
         )
 
     def _generate_mappings(self) -> _InternalMappingStates:
+        """
+        Iterates through possible paths and returns a mapping that can
+        be used by the automata library for general operations
+        """
         mappings: _InternalMappingStates = {}
         for state in self.states:
             mappings[self._to_internal_state(state)] = {}
@@ -173,12 +182,24 @@ class DeterministicFiniteAutomata:
         )
 
     def _to_internal_state(self, state: State) -> _InternalState:
+        """
+        Converts from regular state (tuples) into a state that can
+        be handled by the underlying library (strings)
+        """
         return repr(state)
 
     def _to_state(self, internal_state: _InternalState) -> State:
+        """
+        Converts from internal states (strings) into a state that can
+        be manipulated by general python users (tuples)
+        """
         return cast(State, ast.literal_eval(internal_state))
 
     def _collapse_into_state(self, input_state: InputState) -> State:
+        """
+        Converts from user input states (tuples OR strings) into
+        general usable states (tuples)
+        """
         return (
             input_state
             if isinstance(input_state, tuple)
