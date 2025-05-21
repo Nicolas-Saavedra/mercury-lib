@@ -54,4 +54,4 @@ MANIFEST
 .python-version
 
 # Build artifacts from frontend
-src/mercury/static/*
+src/mercury/static
