@@ -2,6 +2,7 @@ from pathlib import Path
 
 import uvicorn
 from fastapi import APIRouter, FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from mercury.automata.deterministic_finite_automata import (
@@ -21,6 +22,13 @@ class DFAView:
         self._app = FastAPI(
             title="Mercury API Interface",
             description="Mercury API made in order to link the library to a web interface",
+        )
+        self._app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["*"],  # Allow all origins (for dev)
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
         )
         self._router = APIRouter()
         self._register_routes()
