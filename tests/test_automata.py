@@ -1,12 +1,9 @@
 from frozendict import frozendict
+
 from pygold.automata.deterministic_finite_automata import DeterministicFiniteAutomata
 from pygold.decorators.delta_function import DeltaFunction
 from pygold.exceptions import MissingDefinitionException
 from pygold.operations.sets import S
-
-__author__ = "Nicolas-Saavedra"
-__copyright__ = "Nicolas-Saavedra"
-__license__ = "MIT"
 
 
 def test_automata_creation():

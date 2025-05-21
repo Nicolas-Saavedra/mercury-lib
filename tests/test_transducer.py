@@ -6,10 +6,6 @@ from pygold.decorators.output_function import OutputFunction
 from pygold.exceptions import InvalidOutputException
 from pygold.operations.sets import S
 
-__author__ = "Nicolas-Saavedra"
-__copyright__ = "Nicolas-Saavedra"
-__license__ = "MIT"
-
 
 def test_transducer_simple_example():
     # States
