@@ -1,16 +1,13 @@
-from collections.abc import Generator
-from starlette.status import HTTP_201_CREATED, HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
 from pygold.automata.deterministic_finite_automata import (
     DeterministicFiniteAutomata as DFA,
 )
-
-from fastapi import APIRouter, FastAPI, HTTPException
+from fastapi.staticfiles import StaticFiles
+from fastapi import APIRouter, FastAPI
 import uvicorn
+from pathlib import Path
 
-from pygold.types.state import State
 from pygold.web.dfa.dfa_schema import (
     DFASchema,
-    DFAStepResult,
     to_node,
     to_schema,
 )
@@ -30,7 +27,12 @@ class DFAView:
         )
         self._router = APIRouter()
         self._register_routes()
-        self._app.include_router(self._router)
+
+        static_dir = Path(__file__).parent.parent.parent / "static"
+        self._app.mount(
+            "/view", StaticFiles(directory=static_dir, html=True), name="spa"
+        )
+        self._app.include_router(self._router, prefix="/api")
 
     def _register_routes(self):
 

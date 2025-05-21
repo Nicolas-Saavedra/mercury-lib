@@ -8,7 +8,7 @@ import axios from "axios";
 import { Execution } from "./types/execution";
 import { processTransitions } from "./lib/automata";
 
-const BACKEND_URL = "http://localhost:8081";
+const BACKEND_URL = "http://localhost:8081/api";
 
 export default function App() {
   const [automata, setAutomata] = useState<Automata | null>(null);

@@ -36,3 +36,4 @@ def test_automata_Amod3xBmod3_web_visualization():
     )
 
     web = DFAView(automata)
+    web.run()
