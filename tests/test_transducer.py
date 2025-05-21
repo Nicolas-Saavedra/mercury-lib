@@ -1,10 +1,10 @@
-from pygold.automata.deterministic_finite_transducer import (
+from mercury.automata.deterministic_finite_transducer import (
     DeterministicFiniteTransducer,
 )
-from pygold.decorators.delta_function import DeltaFunction
-from pygold.decorators.output_function import OutputFunction
-from pygold.exceptions import InvalidOutputException
-from pygold.operations.sets import S
+from mercury.decorators.delta_function import DeltaFunction
+from mercury.decorators.output_function import OutputFunction
+from mercury.exceptions import InvalidOutputException
+from mercury.operations.sets import S
 
 
 def test_transducer_simple_example():

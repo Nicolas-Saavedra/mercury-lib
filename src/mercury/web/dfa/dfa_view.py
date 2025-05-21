@@ -1,16 +1,13 @@
-from pygold.automata.deterministic_finite_automata import (
-    DeterministicFiniteAutomata as DFA,
-)
-from fastapi.staticfiles import StaticFiles
-from fastapi import APIRouter, FastAPI
-import uvicorn
 from pathlib import Path
 
-from pygold.web.dfa.dfa_schema import (
-    DFASchema,
-    to_node,
-    to_schema,
+import uvicorn
+from fastapi import APIRouter, FastAPI
+from fastapi.staticfiles import StaticFiles
+
+from mercury.automata.deterministic_finite_automata import (
+    DeterministicFiniteAutomata as DFA,
 )
+from mercury.web.dfa.dfa_schema import DFASchema, to_node, to_schema
 
 
 class DFAView:

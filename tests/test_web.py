@@ -1,7 +1,7 @@
-from pygold.automata.deterministic_finite_automata import DeterministicFiniteAutomata
-from pygold.decorators.delta_function import DeltaFunction
-from pygold.operations.sets import S
-from pygold.web.dfa.dfa_view import DFAView
+from mercury.automata.deterministic_finite_automata import DeterministicFiniteAutomata
+from mercury.decorators.delta_function import DeltaFunction
+from mercury.operations.sets import S
+from mercury.web.dfa.dfa_view import DFAView
 
 
 def test_automata_Amod3xBmod3_web_visualization():

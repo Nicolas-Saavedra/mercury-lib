@@ -1,8 +1,9 @@
 from typing import Literal
+
 from pydantic import BaseModel
 
-from pygold.automata.deterministic_finite_automata import DeterministicFiniteAutomata
-from pygold.types.state import State
+from mercury.automata.deterministic_finite_automata import DeterministicFiniteAutomata
+from mercury.types.state import State
 
 
 class DFANode(BaseModel):

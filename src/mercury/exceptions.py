@@ -2,7 +2,7 @@ from collections.abc import Hashable
 from inspect import Parameter
 from typing import Callable
 
-from pygold.types.delta_function import Registry
+from mercury.types.delta_function import Registry
 
 
 class MissingTypeHintException(Exception):

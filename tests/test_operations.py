@@ -1,4 +1,4 @@
-from pygold.operations.sets import S
+from mercury.operations.sets import S
 
 
 def test_set_definition_operations():

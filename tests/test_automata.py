@@ -1,9 +1,9 @@
 from frozendict import frozendict
 
-from pygold.automata.deterministic_finite_automata import DeterministicFiniteAutomata
-from pygold.decorators.delta_function import DeltaFunction
-from pygold.exceptions import MissingDefinitionException
-from pygold.operations.sets import S
+from mercury.automata.deterministic_finite_automata import DeterministicFiniteAutomata
+from mercury.decorators.delta_function import DeltaFunction
+from mercury.exceptions import MissingDefinitionException
+from mercury.operations.sets import S
 
 
 def test_automata_creation():

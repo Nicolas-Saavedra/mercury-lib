@@ -1,15 +1,15 @@
-from collections.abc import Hashable
 import inspect
+from collections.abc import Hashable
 from types import NoneType
 from typing import Callable, cast
 
-from pygold.exceptions import (
+from mercury.exceptions import (
     MissingDefinitionException,
     MissingNextParameterException,
     MissingTypeHintException,
 )
-from pygold.types.delta_function import Registry
-from pygold.types.state import InputState
+from mercury.types.delta_function import Registry
+from mercury.types.state import InputState
 
 NEXT_SYMBOL_KEYWORD_NAME = "next"
 

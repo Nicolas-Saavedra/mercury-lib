@@ -1,10 +1,11 @@
 from collections.abc import Generator, Iterable
 from itertools import zip_longest
-from pygold.automata.deterministic_finite_automata import DeterministicFiniteAutomata
-from pygold.decorators.delta_function import DeltaFunction
-from pygold.decorators.output_function import OutputFunction
-from pygold.exceptions import InvalidOutputException
-from pygold.types.state import InputState, InputSymbol
+
+from mercury.automata.deterministic_finite_automata import DeterministicFiniteAutomata
+from mercury.decorators.delta_function import DeltaFunction
+from mercury.decorators.output_function import OutputFunction
+from mercury.exceptions import InvalidOutputException
+from mercury.types.state import InputState, InputSymbol
 
 
 class DeterministicFiniteTransducer(DeterministicFiniteAutomata):

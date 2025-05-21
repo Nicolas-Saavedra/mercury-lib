@@ -1,7 +1,8 @@
 from collections.abc import Hashable
 from typing import override
-from pygold.decorators.delta_function import DeltaFunction
-from pygold.exceptions import InvalidReturnTypeException
+
+from mercury.decorators.delta_function import DeltaFunction
+from mercury.exceptions import InvalidReturnTypeException
 
 
 class OutputFunction(DeltaFunction):

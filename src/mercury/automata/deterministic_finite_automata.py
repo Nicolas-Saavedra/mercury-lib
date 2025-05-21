@@ -1,13 +1,14 @@
 import ast
-from collections.abc import Hashable, Iterable, Generator
+from collections.abc import Generator, Hashable, Iterable
 from typing import cast
+
 from automata.fa.dfa import DFA
 from frozendict import frozendict
 
-from pygold.decorators.output_function import OutputFunction
-from pygold.exceptions import MissingStateException, WrongArgumentException
-from pygold.decorators.delta_function import DeltaFunction
-from pygold.types.state import State, InputSymbol, InputState
+from mercury.decorators.delta_function import DeltaFunction
+from mercury.decorators.output_function import OutputFunction
+from mercury.exceptions import MissingStateException, WrongArgumentException
+from mercury.types.state import InputState, InputSymbol, State
 
 type _InternalState = str
 """
@@ -175,7 +176,7 @@ class DeterministicFiniteAutomata:
         """
         Shows a diagram for the generated automaton using the UI libraries.
         Please make sure that you have installed either the package with all
-        the dependencies or at least the graphical ones (pyGold[all] or pyGold[graphical])
+        the dependencies or at least the graphical ones (mercury-lib[all] or mercury-lib[graphical])
         """
         _ = self._automata.show_diagram().draw(  # pyright: ignore[reportUnknownMemberType]
             path
