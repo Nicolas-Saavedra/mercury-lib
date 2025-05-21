@@ -54,4 +54,4 @@ MANIFEST
 .python-version
 
 # Build artifacts from frontend
-src/pygold/static/*
+src/mercury/static/*

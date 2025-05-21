@@ -2,9 +2,9 @@ from collections.abc import Hashable
 
 type State = tuple[Hashable]
 """
-States are the core foundation of DFAs inside of pyGold. These states are simple tuples
+States are the core foundation of DFAs inside of Mercury. These states are simple tuples
 of hashable values. Since `automata-python` can only handle states in string format,
-states from `pyGold` need to be translated to strings using the python `repr` function.
+states from `mercury` need to be translated to strings using the python `repr` function.
 
 Do not confuse them with InputState, which are states solely used to provide flexibility
 in the constructor such that it's easier to use, but will not be returned by the automaton

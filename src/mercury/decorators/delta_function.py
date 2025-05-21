@@ -78,7 +78,7 @@ class DeltaFunction:
 
         Do know that for convenience, it is recommended to name the functions as `_`
         in order for python to understand that the function will not be called by name,
-        but by an external library/caller, such as pyGold. Could help avoid naming warnings in
+        but by an external library/caller, such as Mercury. Could help avoid naming warnings in
         traditional LSP implementations of common editors
         """
 

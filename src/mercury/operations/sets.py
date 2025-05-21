@@ -7,7 +7,7 @@ U = TypeVar("U", bound=Hashable)
 
 class S(frozenset[T]):
     """
-    A simplified frozenset, used for quick operations in the pyGold library
+    A simplified frozenset, used for quick operations in the Mercury library
 
     S works just like a regular frozenset (meaning a set that cannot be modified directly),
     save for implementing both product and union operations using the traditional operations

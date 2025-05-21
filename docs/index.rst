@@ -1,8 +1,8 @@
 ======
-pyGold
+Mercury
 ======
 
-This is the documentation of **pyGold**.
+This is the documentation of **Mercury**.
 
 .. note::
 

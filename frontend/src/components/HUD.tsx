@@ -67,9 +67,9 @@ export default function HUD({
       <div className="flex justify-between">
         <a href="#" className="pointer-events-auto">
           <img
-            src="/pyGold.svg"
+            src="pyGold.svg"
             className="h-16 px-4 py-2 m-4 bg-gray-100 rounded-2xl"
-            alt="pyGold Logo"
+            alt="Mercury Logo"
           />
         </a>
         <div className="flex items-center">

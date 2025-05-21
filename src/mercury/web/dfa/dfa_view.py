@@ -19,8 +19,8 @@ class DFAView:
     def __init__(self, automata: DFA) -> None:
         self._automata = automata
         self._app = FastAPI(
-            title="pyGold API Interface",
-            description="pyGold API made in order to link the library to a web interface",
+            title="Mercury API Interface",
+            description="Mercury API made in order to link the library to a web interface",
         )
         self._router = APIRouter()
         self._register_routes()
