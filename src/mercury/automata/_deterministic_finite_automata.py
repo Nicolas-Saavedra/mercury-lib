@@ -5,10 +5,9 @@ from typing import cast
 from automata.fa.dfa import DFA
 from frozendict import frozendict
 
-from mercury.decorators.delta_function import DeltaFunction
-from mercury.decorators.output_function import OutputFunction
+from mercury.decorators import DeltaFunction, OutputFunction
 from mercury.exceptions import MissingStateException, WrongArgumentException
-from mercury.types.state import InputState, InputSymbol, State
+from mercury.types import InputState, InputSymbol, State
 
 type _InternalState = str
 """

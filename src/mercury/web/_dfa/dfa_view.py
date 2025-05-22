@@ -5,10 +5,9 @@ from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from mercury.automata.deterministic_finite_automata import (
-    DeterministicFiniteAutomata as DFA,
-)
-from mercury.web.dfa.dfa_schema import DFASchema, to_node, to_schema
+from mercury.automata import DeterministicFiniteAutomata as DFA
+
+from .._dfa.dfa_schema import DFASchema, to_node, to_schema
 
 
 class DFAView:

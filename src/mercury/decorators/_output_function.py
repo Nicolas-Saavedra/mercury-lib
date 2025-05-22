@@ -1,8 +1,9 @@
 from collections.abc import Hashable
 from typing import override
 
-from mercury.decorators.delta_function import DeltaFunction
 from mercury.exceptions import InvalidReturnTypeException
+
+from ._delta_function import DeltaFunction
 
 
 class OutputFunction(DeltaFunction):

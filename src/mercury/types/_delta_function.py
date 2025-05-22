@@ -1,5 +1,5 @@
 from typing import Callable
 
-from mercury.types.state import InputState
+from ._state import InputState
 
 type Registry = dict[tuple[type, ...], Callable[..., InputState]]

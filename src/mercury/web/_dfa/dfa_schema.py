@@ -2,8 +2,8 @@ from typing import Literal
 
 from pydantic import BaseModel
 
-from mercury.automata.deterministic_finite_automata import DeterministicFiniteAutomata
-from mercury.types.state import State
+from mercury.automata import DeterministicFiniteAutomata
+from mercury.types import State
 
 
 class DFANode(BaseModel):

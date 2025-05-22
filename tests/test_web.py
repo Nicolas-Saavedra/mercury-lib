@@ -36,5 +36,4 @@ def test_automata_Amod3xBmod3_web_visualization():
     )
 
     web = DFAView(automata)
-
     # TODO: Some unit testing on the view endpoint would be appreciated

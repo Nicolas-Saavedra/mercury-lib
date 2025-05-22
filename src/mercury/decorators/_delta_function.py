@@ -8,8 +8,7 @@ from mercury.exceptions import (
     MissingNextParameterException,
     MissingTypeHintException,
 )
-from mercury.types.delta_function import Registry
-from mercury.types.state import InputState
+from mercury.types import InputState, Registry
 
 NEXT_SYMBOL_KEYWORD_NAME = "next"
 

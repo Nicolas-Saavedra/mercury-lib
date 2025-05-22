@@ -1,11 +1,11 @@
 from collections.abc import Generator, Iterable
 from itertools import zip_longest
 
-from mercury.automata.deterministic_finite_automata import DeterministicFiniteAutomata
-from mercury.decorators.delta_function import DeltaFunction
-from mercury.decorators.output_function import OutputFunction
+from mercury.decorators import DeltaFunction, OutputFunction
 from mercury.exceptions import InvalidOutputException
-from mercury.types.state import InputState, InputSymbol
+from mercury.types import InputState, InputSymbol
+
+from ._deterministic_finite_automata import DeterministicFiniteAutomata
 
 
 class DeterministicFiniteTransducer(DeterministicFiniteAutomata):
