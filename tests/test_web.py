@@ -1,7 +1,7 @@
-from mercury.automata.deterministic_finite_automata import DeterministicFiniteAutomata
-from mercury.decorators.delta_function import DeltaFunction
+from mercury.automata import DeterministicFiniteAutomata
+from mercury.decorators import DeltaFunction
 from mercury.operations.sets import S
-from mercury.web.dfa.dfa_view import DFAView
+from mercury.web import DFAView
 
 
 def test_automata_Amod3xBmod3_web_visualization():
@@ -36,4 +36,5 @@ def test_automata_Amod3xBmod3_web_visualization():
     )
 
     web = DFAView(automata)
-    web.run()
+
+    # TODO: Some unit testing on the view endpoint would be appreciated

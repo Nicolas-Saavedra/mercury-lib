@@ -1,8 +1,5 @@
-from mercury.automata.deterministic_finite_transducer import (
-    DeterministicFiniteTransducer,
-)
-from mercury.decorators.delta_function import DeltaFunction
-from mercury.decorators.output_function import OutputFunction
+from mercury.automata import DeterministicFiniteTransducer
+from mercury.decorators import DeltaFunction, OutputFunction
 from mercury.exceptions import InvalidOutputException
 from mercury.operations.sets import S
 

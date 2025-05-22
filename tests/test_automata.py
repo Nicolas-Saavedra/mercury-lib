@@ -1,7 +1,7 @@
 from frozendict import frozendict
 
-from mercury.automata.deterministic_finite_automata import DeterministicFiniteAutomata
-from mercury.decorators.delta_function import DeltaFunction
+from mercury.automata import DeterministicFiniteAutomata
+from mercury.decorators import DeltaFunction
 from mercury.exceptions import MissingDefinitionException
 from mercury.operations.sets import S
 
