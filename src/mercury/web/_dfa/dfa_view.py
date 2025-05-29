@@ -9,6 +9,12 @@ from mercury.automata import DeterministicFiniteAutomata as DFA
 
 from .._dfa.dfa_schema import DFASchema, to_node, to_schema
 
+# Cannot easily modify unless recompiling the frontend
+
+# TODO: Review what options there are for frontend to
+# dynamically find the backend's port
+PORT = 8081
+
 
 class DFAView:
 
@@ -54,6 +60,7 @@ class DFAView:
                 "accepted": states[-1] in self._automata.final_states,
             }
 
-    def run(self, host: str = "0.0.0.0", port: int = 8081):
+    def run(self, host: str = "0.0.0.0"):
         """Run the FastAPI application using uvicorn"""
-        uvicorn.run(self._app, host=host, port=port)
+        print("Graphical automata view can be seen at http://127.0.0.1:8081/view")
+        uvicorn.run(self._app, host=host, port=PORT, log_level="critical")
